@@ -50,7 +50,6 @@ def geneticAlgorithm(population, lenCities, TOURNAMENT_SELECTION_SIZE, MUTATION_
         new_population.append(sorted(population)[1])
 
         for j in range( int( ( len(population) - 2 ) / 2 ) ):
-        #for j in range( int(len(population))):
             # crossover
             random_number = random.random()
             if random_number < CROSSOVER_RATE:
