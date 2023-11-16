@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 # get cities data
 def getCity():
     cities = []
-    f = open('TSP51.txt')
-    for i in f.readlines():
-        node_city_val = i.split()
-        cities.append([node_city_val[0], float(node_city_val[1]), float(node_city_val[2])])
+    with open('./data/ali535.txt') as f:
+        for line in f.readlines():
+            node_city_val = line.split()
+            cities.append([node_city_val[0], float(node_city_val[1]), float(node_city_val[2])])
 
     return cities
 
@@ -40,7 +40,13 @@ def selectPopulation(cities, size):
     return population, fitest
 
 # GA
-def geneticAlgorithm(population, lenCities, TOURNAMENT_SELECTION_SIZE, MUTATION_RATE, CROSSOVER_RATE, GENERATIONS):
+def geneticAlgorithm(population, 
+                     lenCities, 
+                     TOURNAMENT_SELECTION_SIZE, 
+                     MUTATION_RATE, 
+                     GENERATIONS,
+                     answer_per_generation,
+                     generations):
     gen_number = 0
     for i in range(GENERATIONS):
         new_population = []
@@ -51,30 +57,24 @@ def geneticAlgorithm(population, lenCities, TOURNAMENT_SELECTION_SIZE, MUTATION_
 
         for j in range( int( ( len(population) - 2 ) / 2 ) ):
             # crossover
-            random_number = random.random()
-            if random_number < CROSSOVER_RATE:
-                parent1 = sorted(random.choices(population, k = TOURNAMENT_SELECTION_SIZE))[0]
-                parent2 = sorted(random.choices(population, k = TOURNAMENT_SELECTION_SIZE))[0]
-                
-                point = random.randint(0, lenCities - 1)
+            parent1 = sorted(random.choices(population, k = TOURNAMENT_SELECTION_SIZE))[0]
+            parent2 = sorted(random.choices(population, k = TOURNAMENT_SELECTION_SIZE))[0]
+            
+            point = random.randint(0, lenCities - 1)
 
-                child1 = parent1[1][0:point]
+            child1 = parent1[1][0:point]
 
-                for k in parent2[1]:
-                    if (k in child1) == False:
-                        child1.append(k)
-                
-                child2 = parent2[1][0:point]
+            for k in parent2[1]:
+                if (k in child1) == False:
+                    child1.append(k)
+            
+            child2 = parent2[1][0:point]
 
-                for k in parent1[1]:
-                    if (k in child2) == False:
-                        child2.append(k)
+            for k in parent1[1]:
+                if (k in child2) == False:
+                    child2.append(k)
 
-            # if crossover not happen
-            else:
-                child1 = random.choices(population)[0][1]
-                child2 = random.choices(population)[0][1]
-
+            random_number = random.random() 
             # mutation
             if random.random() < MUTATION_RATE:
                 point1 = random.randint(0, lenCities - 1)
@@ -92,6 +92,8 @@ def geneticAlgorithm(population, lenCities, TOURNAMENT_SELECTION_SIZE, MUTATION_
 
         population = new_population
         gen_number += 1
+        generations.append(gen_number)
+        answer_per_generation.append(sorted(population)[0][0])
 
         if gen_number % 10 == 0:
             print(gen_number, sorted(population)[0][0])
@@ -120,19 +122,35 @@ def drawMap(cities, answer):
     first = answer[1][0]
     second = answer[1][-1]
     plt.plot([first[1], second[1]], [first[2], second[2]], "gray")
+    plt.figure(1)
+    plt.show()
+
+def drawPlot(answer_per_generation, generations):
+    for i in range(len(answer_per_generation)):
+        plt.plot(generations[i], answer_per_generation[i], "ro")
+    plt.ylabel("Total distance")
+    plt.xlabel("Generation")
+    plt.figure(1)
     plt.show()
 
 def main():
     # initial values
-    POPULATION_SIZE = 2000
+    POPULATION_SIZE = 5000
     TOURNAMENT_SELECTION_SIZE = 4
     MUTATION_RATE = .1
-    CROSSOVER_RATE = .9
-    GENERATIONS = 200
+    GENERATIONS = 500
+
+    answer_per_generation = []
+    generations = []
 
     cities = getCity()
     firstPopulation, firstFitest = selectPopulation(cities, POPULATION_SIZE)
-    answer, genNumber = geneticAlgorithm(firstPopulation, len(cities), TOURNAMENT_SELECTION_SIZE, MUTATION_RATE, CROSSOVER_RATE, GENERATIONS)
+    answer, genNumber = geneticAlgorithm(firstPopulation, 
+                                         len(cities), 
+                                         TOURNAMENT_SELECTION_SIZE, 
+                                         MUTATION_RATE, GENERATIONS, 
+                                         answer_per_generation,
+                                         generations)
 
     print("\n----------------------------------------------------------------")
     print("Generation: " + str(genNumber))
@@ -141,6 +159,7 @@ def main():
     # print("Target distance: " + str(TARGET))
     print("----------------------------------------------------------------\n")   
     drawMap(cities, answer)
+    drawPlot(answer_per_generation, generations)
 
 main()
 
